@@ -4,24 +4,22 @@ import { Chess } from "chess.js"
 import { Presets, SingleBar } from "cli-progress"
 import ffmpeg from "fluent-ffmpeg"
 import { existsSync } from "fs"
-import { mkdir, readFile, readdir, rmdir } from "fs/promises"
+import { mkdir, readFile, readdir, rm } from "fs/promises"
 import { dirname, join } from "path"
 import { fileURLToPath, pathToFileURL } from "url"
 import { desiredTime, pgnFile, videoOutput } from "./config.js"
 
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
-
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = dirname(__filename)
-
-const pgnPath = join(__dirname, "../", pgnFile)
-
 const error = (...args: any[]) => {
     console.log(chalk.red(...args))
     process.exit(1)
 }
 
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
+
 const main = async () => {
+    const pgnPath = join(__dirname, "../", pgnFile)
     if (!existsSync(pgnPath)) error("No game.pgn file found")
     const pgn = await readFile(pgnPath, "utf-8")
 
@@ -38,7 +36,7 @@ const main = async () => {
     const files = existsSync(tempPath) ? await readdir(tempPath) : []
 
     if (files.length === 0 || files.length !== rawHistory.length) {
-        if (existsSync(tempPath)) await rmdir(tempPath, { recursive: true })
+        if (existsSync(tempPath)) await rm(tempPath, { recursive: true })
         if (!existsSync(tempPath)) await mkdir(tempPath)
 
         const imageGenerator = new ChessImageGenerator()
